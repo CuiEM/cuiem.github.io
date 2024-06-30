@@ -1,5 +1,12 @@
 <!DOCTYPE html>
 <html>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+<!-- and it's easy to individually load additional languages -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+    
+<script>hljs.highlightAll();</script>
 
 <head>
     <title>CuiEM Site</title>
@@ -100,6 +107,31 @@
         </tr>
     </table>
     </center>
+
+    <hr>
+    <h2>Code of Sorting Data</h2>
+    <pre>
+        <code class="Python">
+from asyncore import read
+import pandas as pd
+from datetime import datetime
+
+def data_sort_monthly(filename,name):
+    data = pd.read_csv(filename)
+    data['Date']=pd.to_datetime(data['Date'])
+    data=data.set_index('Date')
+    datasum = data.resample('m').sum().to_period('m')
+    datasum = datasum.loc[:, ~datasum.columns.str.contains('Unnamed')]
+    datasum.to_csv(f'~/{name}.csv') # Change the path to your own path
+
+def data_sort_weekly(filename,name):
+    data = pd.read_csv(filename)
+    data['Date']=pd.to_datetime(data['Date'])
+    data=data.set_index('Date')
+    datasum = data.resample('w').sum()  # to_period('w') More obvious result
+    datasum = datasum.loc[:, ~datasum.columns.str.contains('Unnamed')]
+    datasum.to_csv(f'{name}.csv') # Change the path to your own path
+    </pre>
 
 </body>
 
