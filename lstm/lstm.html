@@ -2,10 +2,10 @@
 <html>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    
+
 <!-- and it's easy to individually load additional languages -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
-    
+
 <script>hljs.highlightAll();</script>
 
 <head>
@@ -65,16 +65,25 @@
     <h1>LSTM Time Series Prediction in Senior Project</h1>
 
     <center>
-    <p><img src="image/LSTM.png" alt="lstm" width="100%"></p>
+        <p><img src="image/LSTM.png" alt="lstm" width="100%"></p>
     </center>
 
-    <p class="small">*Image comes from the book "<a href="https://zh-v2.d2l.ai/">Dive into Deep Learning</a>" by Li Mu.</p>
+    <p class="small">*Image comes from the book "<a href="https://zh-v2.d2l.ai/">Dive into Deep Learning</a>" by Li Mu.
+    </p>
     <hr>
 
     <h2>Brief Introduction</h2>
 
-    <p> 
-        In this senior design project report, a two-step inventory management analysis has been introduced for the raw material inventory of the Sichuan Mountek Microelectronic Technology Co., LTD. The goal is to explore the possibility to improve the inventory management of Mountek company via optimizing the inventory cost. First, the ABC analysis has been used to select the two most important raw materials, epoxy molding compound (EMC) and frame, in the warehouse. Then, four different models, Auto Regressive moving average model (ARIMA), Vector Auto Regressive model (VAR), BP Neural Network with Particle Swarm Optimization and Long Short-Term Memory Network model (LSTM) have been applied to analyze the stock out flow of the two materials. My work is focused on the VAR model and LSTM model. Comparison between empirical and fitted value based on RMSE help us determine LSTM as our best model. But in this page, I will only introduce the LSTM model.
+    <p>
+        In this senior design project report, a two-step inventory management analysis has been introduced for the raw
+        material inventory of the Sichuan Mountek Microelectronic Technology Co., LTD. The goal is to explore the
+        possibility to improve the inventory management of Mountek company via optimizing the inventory cost. First, the
+        ABC analysis has been used to select the two most important raw materials, epoxy molding compound (EMC) and
+        frame, in the warehouse. Then, four different models, Auto Regressive moving average model (ARIMA), Vector Auto
+        Regressive model (VAR), BP Neural Network with Particle Swarm Optimization and Long Short-Term Memory Network
+        model (LSTM) have been applied to analyze the stock out flow of the two materials. My work is focused on the VAR
+        model and LSTM model. Comparison between empirical and fitted value based on RMSE help us determine LSTM as our
+        best model. But in this page, I will only introduce the LSTM model.
 
         The code refers to <a href="https://zhuanlan.zhihu.com/p/104475016">知乎</a>.
     </p>
@@ -83,29 +92,45 @@
     <h2>Data Examples</h2>
 
     <p>
-        The data we used in this report is collected from Sichuan Mountek Microelectronic Technology Co., LTD’s raw material warehouse. Mountek is a semiconductor packaging company which adopts the world’s first-class brands of automatic packaging and testing instruments to achieve completely independent production of the whole packaging process, and now has a variety of types of product packaging solutions and reliability analysis capabilities, and can provide diversified packaging and testing program development and customized services according to customer needs. Mountek built its first raw material warehouse in Suining in 2010, and a second warehouse was built in Neijiang in 2019, which has gradually been put into use since August 2021. Part of the data are shown below.
+        The data we used in this report is collected from Sichuan Mountek Microelectronic Technology Co., LTD’s raw
+        material warehouse. Mountek is a semiconductor packaging company which adopts the world’s first-class brands of
+        automatic packaging and testing instruments to achieve completely independent production of the whole packaging
+        process, and now has a variety of types of product packaging solutions and reliability analysis capabilities,
+        and can provide diversified packaging and testing program development and customized services according to
+        customer needs. Mountek built its first raw material warehouse in Suining in 2010, and a second warehouse was
+        built in Neijiang in 2019, which has gradually been put into use since August 2021. Part of the data are shown
+        below.
     </p>
     <center>
         <p><img src="image/data_subset.png" alt="data_subset" width="100%"></p>
     </center>
     <hr>
-    <h2 >Prediction Results Examples</h2>
+    <h2>Prediction Results Examples</h2>
     <p>
-        Considering our time series are not too big, instead of separating data into several batch, we run the data as one batch. To normalize our data, we choose min-max method to transform the original data so that it falls within a specified range, typically between 0 and 1. With 0.02 learning rate and 1000 epochs which to make sure the loss is under 1*10-6, we successfully trained our model with 16 hidden layers to get a satisfied result.
+        Considering our time series are not too big, instead of separating data into several batch, we run the data as
+        one batch. To normalize our data, we choose min-max method to transform the original data so that it falls
+        within a specified range, typically between 0 and 1. With 0.02 learning rate and 1000 epochs which to make sure
+        the loss is under 1*10-6, we successfully trained our model with 16 hidden layers to get a satisfied result.
     </p>
 
     <p>
-        Below figures shows the prediction results of one different time series. On the left is the predction results of validation datasets. The right image is the prediction result of test datasets. In each figure, the upper subfigure present both the actual data and prediction results based on the LSTM model which is trained by training data in each time series. As we can see, the actual data and prediction data are almost overlap with each other which may because of number was too big to show difference and LSTM model has a great prediction result. Thus, to visually show difference between them, we label the values of some time points and plot the difference between them in the nether subfigure.
+        Below figures shows the prediction results of one different time series. On the left is the predction results of
+        validation datasets. The right image is the prediction result of test datasets. In each figure, the upper
+        subfigure present both the actual data and prediction results based on the LSTM model which is trained by
+        training data in each time series. As we can see, the actual data and prediction data are almost overlap with
+        each other which may because of number was too big to show difference and LSTM model has a great prediction
+        result. Thus, to visually show difference between them, we label the values of some time points and plot the
+        difference between them in the nether subfigure.
 
     </p>
 
     <center>
-    <table>
-        <tr>
-        <td><img src="image/lstm_valid.png" border=0 width="100%"></td>
-        <td><img src="image/lstn_test.png"  border=0 width="100%"></td>
-        </tr>
-    </table>
+        <table>
+            <tr>
+                <td><img src="image/lstm_valid.png" border=0 width="100%"></td>
+                <td><img src="image/lstn_test.png" border=0 width="100%"></td>
+            </tr>
+        </table>
     </center>
 
     <hr>
