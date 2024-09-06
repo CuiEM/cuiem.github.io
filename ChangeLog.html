@@ -6,7 +6,7 @@
         BODY {
             background-color: white;
             color: black;
-            margin: 25px 120px;
+            margin: 25px 240px;
         }
 
         .heading {
@@ -17,6 +17,60 @@
             font-size: 90%;
         }
 
+        .year {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 40px;
+            margin-bottom: 30px;
+        }
+
+        .month-container {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        }
+
+        .month-container:first-of-type {
+        margin-top: 40px;
+        }
+
+        .month {
+        width: 100px;
+        flex-shrink: 0;
+        font-weight: bold;
+        font-size: 18px;
+        }
+
+        .posts {
+        flex-grow: 1;
+        }
+
+        .post {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        }
+
+        .post:last-child {
+        border-bottom: none;
+        }
+
+        .post-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        }
+
+        .post-meta {
+        color: #666;
+        font-size: 12px;
+        }
+
+        .entry-link {
+        text-decoration: none;
+        color: inherit;
+        }
+        
         dd {
             margin-left: 0pt;
             margin-bottom: lem;
@@ -26,14 +80,24 @@
 </head>
 
 <body>
-    <h1 class="heading">ChangeLog</h1>
+    <h1 class="heading">Archive</h1>
     <p class="heading">
         Unless specified otherwise, all the code and the documentation on this site is in public domain
     </p>
    
-    <p>
-        Obviously, this is a empty site. The purpose of this site is to demonstrate the use of the ChangeLog.html. Maybe One day I know how to build auto-save ChangeLog of my project.
-    </p>
+    <div class="year">2024 <sup>3</sup></div>
+
+    <div class="month-container">
+        <div class="month">June <sup>1</sup></div>
+        <div class="posts">
+            <div class="post">
+                <a class="entry-link" href="spaceship/spaceship.html">
+                    <div class="post-title">Spaceship Tiantic with 0.81295 Accuracy</div>
+                    <div class="post-meta">Date: June 12, 2024 | Author: CuiEM</div>
+                </a>
+            </div>
+        </div>
+    </div>
 
 </body>
 
