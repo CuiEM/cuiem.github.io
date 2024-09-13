@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<!-- and it's easy to individually load additional languages -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+
+<script>hljs.highlightAll();</script>
+
+<head>
+    <title>CuiEM Site</title>
+    <style>
+        BODY {
+            background-color: white;
+            color: black;
+            margin: 25px 120px;
+        }
+
+        .heading {
+            text-align: center;
+        }
+
+        .small {
+            font-size: 90%;
+        }
+
+        dd {
+            margin-left: 0pt;
+            margin-bottom: lem;
+            margin-top: 2px;
+        }
+
+        #navbar,
+        h1 {
+            text-align: center;
+        }
+
+        .small {
+            font-size: x-small;
+        }
+
+        LI.separator {
+            list-style-type: none;
+        }
+
+        LI.header {
+            list-style-type: none;
+            padding: 1em 0px 2px;
+            margin-left: -1em;
+        }
+        #toc {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        #toc h3 {
+            margin-top: 0;
+        }
+        #toc ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+        #toc a {
+            text-decoration: none;
+            color: #333;
+        }
+        #toc a:hover {
+            color: #0066cc;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar">
+        <a href="../../GMIndex.html">Back to Learning Log</a>
+        <hr>
+    </div>
+
+    <h1>DreamFusion: Text-to-3D using 2D Diffusion</h1>
+
+    <dd align="right">Author: Ben Poole, Ajay Jain, Jonathan T. Barron, Ben Mildenhall</dd>
+    <dd align="right"><a href="https://dreamfusion3d.github.io/">Playground</a>, <a href="https://arxiv.org/pdf/2209.14988">Paper</a></dd>
+
+    <center>
+        <video class="video lazy d-none d-xs-none d-sm-block" autoplay="" loop="" playsinline="" muted="" poster="https://dreamfusion-cdn.ajayj.com/sept28/wipe_opposite_6x4_smoothstep.jpg" width="320" height="240" controls>
+            <source data-src="https://dreamfusion-cdn.ajayj.com/sept28/wipe_opposite_6x4_smoothstep.mp4" type="video/mp4" src="https://dreamfusion-cdn.ajayj.com/sept28/wipe_opposite_6x4_smoothstep.mp4">
+        </video>
+    </center>
+
+    <div id="toc">
+        <h3>目录</h3>
+        <ul>
+            <li><a href="#abstract">一、摘要</a></li>
+            <li><a href="#architecture">二、基本架构</a></li>
+            <li><a href="#experiment">三、实验</a></li>
+            <li><a href="#limitations">四、局限性</a></li>
+            <li><a href="#conclusion">五、结论</a></li>
+        </ul>
+    </div>
+        
+    <h2 id="abstract">一、摘要</h2>
+
+    文本到图像合成的最新突破是由在数十亿个图像-文本对上训练的扩散模型推动的。
+    将这种方法应用于 3D 合成需要大规模的标记 3D 资产数据集和用于对 3D 数据进行去噪的有效架构，
+    而这两者目前都不存在。在这项工作中，<strong style="color: red;">作者通过使用预训练的 2D 文本到图像扩散模型来执行文本到 3D 合成</strong>，从而规避了这些限制。
+    作者引入了基于概率密度蒸馏的损失，使得可以使用 2D 扩散模型作为优化参数图像生成器的先验。
+    在类似 DeepDream 的过程中使用此损失，作者通过梯度下降优化随机初始化的 3D 模型（神经辐射场，或 NeRF），
+    使其从随机角度进行的 2D 渲染实现低损失。给定文本的最终 3D 模型可以从任何角度查看，通过任意照明重新点亮，或合成到任何 3D 环境中。
+    作者的方法不需要 3D 训练数据，也不需要修改图像扩散模型，证明了预训练图像扩散模型作为先验的有效性。
+
+
+    <hr style="border: 0; border-top: 1px solid #e0e0e0;">
+
+
+    <h2 id="architecture">二、基本架构</h2>
+
+    <center>
+        <img src="dreamdiff.png" alt="DreamFusion" style="width: 90%">
+    </center>
+
+    <ul>
+        <li>
+            首先，作者选择一个预训练好的2D文本到图像扩散模型（文中使用的是Imagen模型），该模型能够根据文本描述生成2D图像。
+        </li>
+        <li>
+            初始化一个3D模型（Neural Radiance Field，NeRF），该模型以随机权重开始，并针对每个文本提示从头开始训练。
+        </li>
+        <li>
+            使用2D扩散模型作为先验（扮演导师的角色），通过梯度下降优化3D模型，使其生成的2D渲染图像（64x64）与2D扩散模型生成的图像相似。
+        </li>
+        <li>
+            最终，通过优化后的3D模型可以生成具有高质量纹理和光照效果的2D图像，并且可以从任意角度进行渲染。
+        </li>
+    </ul>
+
+    <h3>2.1 Diffusion Model</h3>
+    <p>
+        Diffusion的原理就不在此阐述，总之就是“前向加噪，逆向去噪”的过程。具体可见我的
+        <a href="../../GMIndex.html">Learing Log</a>。
+    </p>
+
+    <center>
+        <img src="diffformula.png" alt="DiffusionModel" style="width: 60%">
+    </center>
+
+    <h3>2.2 <a href="https://arxiv.org/abs/2003.08934">NeRF</a></h3>
+
+    <p>
+        NeRF（Neural Radiance Fields，神经辐射场）是一种用于3D场景表示和渲染的深度学习方法。
+        如下图，它通过将场景建模为一个连续的体积辐射场，可以从稀疏的2D图像中重建出高质量的3D场景，
+        并能从任意视角渲染出新视角的图像。NeRF的核心思想是利用神经网络来学习场景的体积密度和颜色信息，
+        从而实现对场景的3D理解和生成。<a href="https://www.matthewtancik.com/nerf">Playground</a>
+    </p>
+    
+    <center>
+        <img src="nerfsimple.png" alt="NeRF" style="width: 90%">
+    </center>
+
+    从下图里我们可以看到NeRF整体的架构，左边是一个五维的输入，（xyz）代表了某个点的空间坐标，
+    另外两个维度是视角方向，通过这个五维的输入，我们可以得到某个点的体密度（σ）和颜色（RGB）。
+    需要注意的是，每个场景/三维物体对应一个神经网络，也就是说每个物体我们只能过拟合一个网络。
+    
+    图里的两根线代表的是从某个视角射出的光线（Ray），
+    线上的每个点时
+
+    <center>
+        <img src="nerf.png" alt="NeRF" style="width: 90%">
+    </center>
+    
+    <hr style="border: 0; border-top: 1px solid #e0e0e0;">
+
+    <h2 id="experiment">三、实验结果</h2>
+    <center>
+        <img src="dfexp.png" alt="DreamFusionExperimentResult" style="width: 90%">
+    </center>
+    <hr style="border: 0; border-top: 1px solid #e0e0e0;">
+
+    <h2 id="limitations">四、局限性</h2>
+    <ul>
+        <li>
+            SDS Loss 可能会产生过饱和和过平滑的结果。
+        </li>
+        <li>
+            高分辨率会导致低计算效率。
+        </li>
+        <li>
+            伦理问题。
+        </li>
+    </ul>
+    <hr style="border: 0; border-top: 1px solid #e0e0e0;">
+
+    <h2 id="conclusion">五、Code Practice</h2>
+    这个Code不是Google Relase的，是由北大的<a href="https://me.kiui.moe/">唐嘉祥</a>博士复现的，Check Code in 
+    <a href="https://github.com/ashawkey/stable-dreamfusion?tab=readme-ov-file">Github</a>。
+    <hr style="border: 0; border-top: 1px solid #e0e0e0;">
+
+</body>
+
+</html>
