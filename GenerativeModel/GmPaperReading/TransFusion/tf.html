@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<!-- and it's easy to individually load additional languages -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+
+
+<script>hljs.highlightAll();</script>
+
+<head>
+    <title>CuiEM Site</title>
+    <style>
+        BODY {
+            background-color: white;
+            color: black;
+            margin: 25px;
+            width: 80%; 
+            max-width: 1024px;
+            margin-right: auto; 
+            margin-left: auto; 
+        }
+
+        .heading {
+            text-align: center;
+        }
+
+        .small {
+            font-size: 90%;
+        }
+
+        dd {
+            margin-left: 0pt;
+            margin-bottom: lem;
+            margin-top: 2px;
+        }
+
+        #navbar,
+        h1 {
+            text-align: center;
+        }
+
+        .small {
+            font-size: x-small;
+        }
+
+        LI.separator {
+            list-style-type: none;
+        }
+
+        LI.header {
+            list-style-type: none;
+            padding: 1em 0px 2px;
+            margin-left: -1em;
+        }
+        #toc {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+        #toc h3 {
+            margin-top: 0;
+        }
+        #toc ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+        #toc a {
+            text-decoration: none;
+            color: #333;
+        }
+        #toc a:hover {
+            color: #0066cc;
+        }
+    </style>
+
+<code class="language-plain has-numbering hljs" id="code_id_0"><script type="text/javascript" async
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+  </script></code>
+</head>
+
+<body>
+    <div id="navbar">
+        <a href="../../GMIndex.html">Back to Learning Log</a>
+        <hr>
+    </div>
+
+    <h1>Transfusion: Predict the Next Token and Diffuse Images with One Multi-Modal Model
+    </h1>
+
+    <dd align="right">Chunting Zhou, Lili Yu, Arun Babu, Kushal Tirumala, Michihiro Yasunaga, Leonid Shamis, Jacob Kahn, Xuezhe Ma, Luke Zettlemoyer, Omer Levy
+    </dd>
+    <dd>
+        <a href="hhttps://arxiv.org/abs/2408.11039">Paper</a>
+    </dd>
+    <center>
+        <img src="tfex.png" alt="TransfusionResult" width = 90%>   
+    </center>
+    
+    <div id="toc">
+        <h3>目录</h3>
+        <ul>
+            <li><a href="#abstract">一、摘要</a></li>
+            <li><a href="#architecture">二、基本架构</a></li>
+            <li><a href="#experiment">三、实验</a></li>
+            <li><a href="#limitations">四、局限性</a></li>
+            <li><a href="#conclusion">五、结论</a></li>
+        </ul>
+    </div>
+        
+    <h2 id="abstract">一、摘要</h2>
+    <p>
+        多模态生成模型需要能够感知、处理和生成离散元素（文本，代码）和连续元素（图片，视频）。
+        在处理离散数据模态（如文本）方面，基于下一个词预测目标的语言模型已经取得了显著的进展，
+        成为该领域的主导方法。
+        而对于生成连续数据模态（如图像），扩散模型及其泛化形式是目前最前沿的技术。
+        尽管已有一些尝试将语言模型和扩散模型结合起来，但这些方法通常需要对模型架构进行简化，
+        比如将连续模态量化为离散标记，这样做虽然简化了模型，但可能会丢失信息。
+        研究者们指出，需要开发能够无缝生成离散和连续模态的模型，
+        而不是将它们分开处理。这要求模型能够以一种统一的方式处理多种类型的数据。
+    </p>
+
+    <p>
+        论文提出了Transfusion方法，这是一种训练单一模型以理解和生成多种模态数据的方法。
+        这种方法通过将语言建模损失函数和扩散模型结合起来，实现了对混合模态序列的训练。
+        研究者从头开始，在混合文本和图像数据上预训练了参数量高达70亿的Transfusion模型。
+        使用文本和图像数据的混合，他们建立了一系列单模态和跨模态基准的缩放定律。
+        实验表明，Transfusion在单模态和多模态基准测试中，
+        相较于对图像进行量化并在离散图像token上训练语言模型，很明显具有更好的扩展性。
+        Transfusion是一种十分有前途的方法，可以用于训练真正的多模态模型。    
+    </p>
+    
+    <h2 id="architecture">二、基本架构</h2>
+
+    <p>
+        研究者在50%的文本和50%的图像数据上预训练了一个Transformer模型，不过对于两种模态来说，分别使用了不同的目标。
+        前者的目标是 Next Token Prediction；而对于图像则是其扩散。
+        在训练的每一步中，模型都会同时接触到这两种模态和损失函数。
+        标准嵌入层将文本tokens转换为向量，
+        而块化层（patchification layer）则将每个图像表征为一系列块向量。
+        随后，研究者对文本应用因果注意力，对图像块应用双向注意力。
+        在推理时，他们引入了一种解码算法，它结合了语言模型的文本生成和扩散模型的图像生成的标准实践。    
+    </p>
+
+    <p>
+        如下图所示，只有一个Transformer模型，它同时处理文本和图像。
+        对于离散的文本，采用自回归的方式生成。
+        对于图像，图像的连续向量是以并行的方式输入到Transformer中，
+        然后通过扩散模型生成图像。图中的BOI和EOI标志着模态与模态的分开。
+    </p>
+    <center>
+    <img src="tf.png" alt="TransfusionArch" width = 90%>   
+    </center>
+    <h3>2.1 基础</h3>
+
+    <p>
+        语言模型就是一个普通的自回归模型，每个 token 是一个随机变量，联合概率分布就是
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <munderover>
+          <mrow>
+            <mo data-mjx-texclass="OP">∏</mo>
+          </mrow>
+          <mrow>
+            <mi>i</mi>
+            <mo>=</mo>
+            <mn>1</mn>
+          </mrow>
+          <mi>n</mi>
+        </munderover>
+        <mrow>
+          <mo> </mo>
+        </mrow>
+        <msub>
+          <mi>P</mi>
+          <mi>θ</mi>
+        </msub>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>y</mi>
+          <mi>i</mi>
+        </msub>
+        <mrow>
+          <mo stretchy="false">|</mo>
+        </mrow>
+        <msub>
+          <mi>y</mi>
+          <mrow>
+            <mo>&lt;</mo>
+            <mi>i</mi>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+      </math>
+    ，因此对应优化的Loss必然是：
+    </p>
+    <p align="center">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <msub>
+          <mrow>
+            <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">L</mi>
+          </mrow>
+          <mrow>
+            <mrow>
+              <mi mathvariant="normal">L</mi>
+              <mi mathvariant="normal">M</mi>
+            </mrow>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <msub>
+          <mrow>
+            <mi mathvariant="double-struck">E</mi>
+          </mrow>
+          <mrow>
+            <msub>
+              <mi>y</mi>
+              <mi>i</mi>
+            </msub>
+          </mrow>
+        </msub>
+        <mfenced open="[" close="]" separators="|">
+          <mrow>
+            <mo>−</mo>  
+            <mi>log</mi>  
+            <mo data-mjx-texclass="NONE">⁡</mo>  
+            <msub>
+              <mi>P</mi>
+              <mi>θ</mi>
+            </msub>  
+            <mo stretchy="false">(</mo>  
+            <msub>
+              <mi>y</mi>
+              <mi>i</mi>
+            </msub>  
+            <mrow>
+              <mo stretchy="false">|</mo>
+            </mrow>  
+            <msub>
+              <mi>y</mi>
+              <mrow>
+                <mo>&lt;</mo>
+                <mi>i</mi>
+              </mrow>
+            </msub>  
+            <mo stretchy="false">)</mo>  
+          </mrow>  
+        </mfenced>
+      </math>
+    </p>
+    扩散模型就是DDPM，对应的Loss为：
+    <p align="center">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <msub>
+              <mrow>
+                <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">L</mi>
+              </mrow>
+              <mrow>
+                <mrow>
+                  <mi mathvariant="normal">D</mi>
+                  <mi mathvariant="normal">D</mi>
+                  <mi mathvariant="normal">P</mi>
+                  <mi mathvariant="normal">M</mi>
+                </mrow>
+              </mrow>
+            </msub>
+            <mo>=</mo>
+            <msub>
+              <mrow>
+                <mi mathvariant="double-struck">E</mi>
+              </mrow>
+              <mrow>
+                <msub>
+                  <mrow>
+                    <mi mathvariant="bold">x</mi>
+                  </mrow>
+                  <mn>0</mn>
+                </msub>
+                <mo>,</mo>
+                <mi>t</mi>
+                <mo>,</mo>
+                <mi mathvariant="bold-italic">ϵ</mi>
+              </mrow>
+            </msub>
+            <mfenced open="[" close="]" separators="|">
+              <mrow>
+                <mrow>
+                  <mo stretchy="false">|</mo>
+                </mrow>  
+                <mrow>
+                  <mo stretchy="false">|</mo>
+                </mrow>  
+                <mi mathvariant="bold-italic">ϵ</mi>  
+                <mo>−</mo>  
+                <msub>
+                  <mi mathvariant="bold-italic">ϵ</mi>
+                  <mi>θ</mi>
+                </msub>  
+                <mo stretchy="false">(</mo>  
+                <msub>
+                  <mrow>
+                    <mi mathvariant="bold">x</mi>
+                  </mrow>
+                  <mi>t</mi>
+                </msub>  
+                <mo>,</mo>  
+                <mi>t</mi>  
+                <mo>,</mo>  
+                <mi>c</mi>  
+                <mo stretchy="false">)</mo>  
+                <mrow>
+                  <mo stretchy="false">|</mo>
+                </mrow>  
+                <msup>
+                  <mrow>
+                    <mo stretchy="false">|</mo>
+                  </mrow>
+                  <mn>2</mn>
+                </msup>  
+              </mrow>  
+            </mfenced>
+          </math>
+    </p>
+    <h3>2.2 输入</h3>
+    <p>
+        首先作者们讲文本词元化，每个词元用一个整数表示，每个图像通过VAE（预训练好的）编码成一组连续矢量（Latent Patchs）
+        根据从左到右，从上到下的原则排列成一个块。这样就得到了一个包含离散元素和连续元素的单一序列。
+    </p>
+    <p>
+        接下里继续将数据转化Transformer需要的向量，
+        对于文本，这些自己组件是嵌入矩阵，会将每个输入整数转换为向量空间，并将每个输出向量转换为词汇表上的离散分布。
+        对于图像，研究者则尝试了两种方法将k×k块向量的局部窗口压缩为单个Transformer向量（反之亦然）：
+        （1）一个简单的线性层，以及（2）U-Net的上下块。   
+    </p>
+    <center>
+        <img src="tfst.png" alt="TransfusionArch" width = 90%>   
+    </center>
+    <h3>2.3 注意力</h3>
+    
+    <p>
+        语言模型通常使用因果掩码，来有效地计算整个序列的损失和梯度，只需一次前向-后向传递，而不会泄露未来token的信息。
+        相比之下，图像通常会使用不受限制的（双向）注意力来建模。
+        而Transfusion通过对序列中的每个元素应用因果注意力，并在每个单独图像的元素内应用双向注意力，来结合这两种注意力模式。
+        这样，每个图像块就可以在关注同一图像中其他块的同时，只关注序列中先前出现的文本或其他图像的块。
+    </p>
+
+    <h3>2.4 训练</h3>
+    LM损失是逐个token计算的，而扩散损失是逐个图像计算的，这可能跨越序列中的多个元素（图像块）。总的Loss如下：
+
+    <p align="center">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <msub>
+              <mrow>
+                <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">L</mi>
+              </mrow>
+              <mrow>
+                <mtext>Transfusion</mtext>
+              </mrow>
+            </msub>
+            <mo>=</mo>
+            <msub>
+              <mrow>
+                <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">L</mi>
+              </mrow>
+              <mrow>
+                <mtext>LM</mtext>
+              </mrow>
+            </msub>
+            <mo>+</mo>
+            <mi>λ</mi>
+            <mo>⋅</mo>
+            <msub>
+              <mrow>
+                <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">L</mi>
+              </mrow>
+              <mrow>
+                <mtext>DDPM</mtext>
+              </mrow>
+            </msub>
+          </math>
+    </p>
+    <p>这个 λ 的来源论文中只提到是一个平衡系数，至于 λ 取多少有待后续调整。</p>
+
+    <h3>2.5 生成</h3>
+    为了反映训练目标，解码算法也需要在两种模式之间切换：LM和扩散。
+    在LM模式中，从预测分布中逐个词元进行采样。当采样到一个 BOI 时，解码算法切换到扩散模式。
+    一旦扩散过程结束，就将一个 EOI 附加到预测的图像上，并切换回LM模式。
+    如此一来，就可以生成任意混合的文本和图像模态。
+    
+    <h2 id="experiment">三、实验结果</h2>
+    <center>
+        <img src="res.png" alt="TransfusionExperiment" width = 90%></img>
+    </center>
+    可以看到实验结果还是比较出色的，在这六个指标上都完败Meta在23年发布的多模态大模型<a href="https://arxiv.org/abs/2304.09842">变色龙(Chameleon)</a>
+    
+    <h2 id="limitations">四、消融</h2>
+    <ul>
+        <li>
+            启用图像内部的双向注意力对于模型在各种基准测试中的表现有显著提升。
+        </li>
+        <li>
+            块的大小可能越大越图像性能越好，但是文本性能下降。
+        </li>
+        <li>
+            U-net 比线性层效果好。
+        </li>
+        <li>
+            噪声大小有些微影响。
+        </li>
+        
+    </ul>
+    <h2 id="conclusion">五、结论</h2>
+    论文的结论指出，Transfusion模型通过结合语言建模和扩散模型的损失函数，成功实现了对离散和连续数据的统一处理和生成，实验结果表明该模型在多模态任务中表现出色，具有很好的扩展性和效率，同时消融实验揭示了模型的关键组成部分和潜在的改进方向，证明了Transfusion是一个有前景的方法，用于训练能够理解和生成高质量多模态数据的模型。
+</body>
+
+</html>
