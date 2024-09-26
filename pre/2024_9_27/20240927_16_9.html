@@ -8,7 +8,9 @@
       @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
       @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
 
-      body { font-family: 'Droid Serif'; }
+      body { 
+        font-family: 'Droid Serif'; 
+      }
       h1, h2, h3, h4 {
         font-family: 'Yanone Kaffeesatz';
         font-weight: 400;
@@ -24,6 +26,8 @@
       }
       li p { line-height: 1.25em; }
       .red { color: #fa0000; }
+      .blue {color: #22a2c3; }
+      .yellow {color: #fed71a; }
       .large { font-size: 2em; }
       a, a > code {
         color: rgb(249, 38, 114);
@@ -105,9 +109,9 @@
         height: 92%;
         float: left;
       }
-        .left-column h2:last-of-type, .left-column h3:last-child {
+      .left-column h2:last-of-type, .left-column h3:last-child {
           color: #000;
-        }
+      }
       .right-column {
         width: 75%;
         float: right;
@@ -123,14 +127,17 @@ layout: true
 class: center, middle, inverse
 ---
 # Flow with the World
+Author: .yellow[Cuiem]
+
 [[Index](../../index.html)]
+[[4:3](20240927_4_3.html)]
 .footnote[Supported by [Remark](https://github.com/gnab/remark)]
 
 ---
 layout: false
 # Agenda
 ### 1. What is Flow Model?
-### 2. Stable Diffusion 3
+### 2. Why Flow Model?
 ### 3. Latest Work
 
 ---
@@ -176,7 +183,7 @@ a probability distribution of the final target variable.
 <center>
   <img src="flow.png"  width=100%>
 </center>
-#### -> Autoregressive Flows
+#### ---> Autoregressive Flows
 
 ```
 If a flow transformation in a normalizing flow is framed as 
@@ -189,12 +196,40 @@ autoregressive flow.
 
 ---
 template: inverse
-# Stable Diffusion 3
+# Why Flow Model?
 
+---
+.left-column[
+## Why Flow Model?
+### - Stable Diffusion 3
+]
+.right-column[
+Stable Diffusion 3 employs a .blue[Rectified Flow (RF)] formulation 
+where data and noise are connected on a linear trajectory 
+during training. This results in straighter inference paths, 
+which then allow sampling with fewer steps. Furthermore, 
+we introduce a novel trajectory sampling schedule 
+into the training process. 
+<center>
+  <img src="diffflow.png" width=100%>
+</center>
+]
+
+.footnote[.red[*]Research Paper can be found [here](https://arxiv.org/pdf/2403.03206)]
 ---
 template: inverse
 # Latest Work
 
+---
+## Latest Work
+- ### TransFusion
+Check My log [here](../../GenerativeModel/GmPaperReading/TransFusion/tf.html).
+
+- ### DreamFusion
+Check my log [here](../../GenerativeModel/GmPaperReading/DreamFusion/df.html).
+
+- ### Idea
+Using Flow model instead of Diffusion Model.
 ---
 template: inverse
 #Thank You!
@@ -204,7 +239,7 @@ template: inverse
     <script src="https://remarkjs.com/downloads/remark-latest.min.js">
     </script>
     <script>
-      var slideshow = remark.create();
+      var slideshow = remark.create({ ratio: "16:9" });
     </script>
   </body>
 </html>
