@@ -5,8 +5,7 @@
 
 <!-- and it's easy to individually load additional languages -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
-
-
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
 <script>hljs.highlightAll();</script>
 
 <head>
@@ -77,9 +76,7 @@
         }
     </style>
 
-<code class="language-plain has-numbering hljs" id="code_id_0"><script type="text/javascript" async
-    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
-  </script></code>
+
 </head>
 
 <body>
@@ -106,7 +103,7 @@
             <li><a href="#abstract">一、摘要</a></li>
             <li><a href="#architecture">二、基本架构</a></li>
             <li><a href="#experiment">三、实验</a></li>
-            <li><a href="#limitations">四、局限性</a></li>
+            <li><a href="#limitations">四、消融</a></li>
             <li><a href="#conclusion">五、结论</a></li>
         </ul>
     </div>
@@ -414,5 +411,10 @@
     <h2 id="conclusion">五、结论</h2>
     论文的结论指出，Transfusion模型通过结合语言建模和扩散模型的损失函数，成功实现了对离散和连续数据的统一处理和生成，实验结果表明该模型在多模态任务中表现出色，具有很好的扩展性和效率，同时消融实验揭示了模型的关键组成部分和潜在的改进方向，证明了Transfusion是一个有前景的方法，用于训练能够理解和生成高质量多模态数据的模型。
 </body>
-
+<script>
+  function addDarkmodeWidget() {
+    new Darkmode({label: '🌓'}).showWidget();
+  }
+  window.addEventListener('load', addDarkmodeWidget);
+</script>
 </html>

@@ -98,6 +98,23 @@
     </p>
     <hr style="border: 0; border-top: 1px solid #e0e0e0;">
 
-</body>
+    <h3><a href="GmPaperReading/FlowGan/fg.html">Flow-GAN</a></h3>
+    <p>
+        这篇文章介绍了Flow-GAN，这是一种新型的生成对抗网络，它通过结合最大似然估计和对抗学习
+        ，能够在生成高质量样本的同时进行精确的概率密度评估。实验表明，Flow-GAN在对抗性训练下
+        虽然能产生高质量的样本，但得到的对数似然分数很低；而通过最大似然估计训练时，虽然能获得
+        较高的对数似然分数，但生成的样本质量较差。因此，文章提出了一种混合训练目标，旨在平衡这
+        两种方法，以提高样本质量和似然估计。在MNIST和CIFAR-10数据集上的实验结果显示，混合训
+        练目标能够在保持视觉保真度的同时，提高模型的保留似然度。
+    </p>
+    <hr style="border: 0; border-top: 1px solid #e0e0e0;">
 
+</body>
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+<script>
+    function addDarkmodeWidget() {
+      new Darkmode({label: '🌓'}).showWidget();
+    }
+    window.addEventListener('load', addDarkmodeWidget);
+  </script>
 </html>
