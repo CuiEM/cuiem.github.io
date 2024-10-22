@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>2024-09-27</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { 
+        font-family: 'Libertinus Serif'; 
+      }
+      h1, h2, h3, h4 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: 400;
+        margin-bottom: 0;
+      }
+      .remark-slide-content h1 { font-size: 3em; }
+      .remark-slide-content h2 { font-size: 2em; }
+      .remark-slide-content h3 { font-size: 1.6em; }
+      .remark-slide-content h4 { font-size: 1.2em; }
+
+      .footnote {
+        position: absolute;
+        left: 3em;
+        right: 2em;
+        bottom: 3em;
+      }
+      li p { line-height: 1.25em; }
+      .red { color: #fa0000; }
+      .blue {color: #22a2c3; }
+      .yellow {color: #fed71a; }
+      .large { font-size: 2em; }
+      a, a > code {
+        color: rgb(249, 38, 114);
+        text-decoration: none;
+      }
+      code {
+        background: #e7e8e2;
+        border-radius: 5px;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+      .remark-code-line-highlighted     { background-color: #373832; }
+      .pull-left {
+        float: left;
+        width: 47%;
+      }
+      .pull-right {
+        float: right;
+        width: 47%;
+      }
+      .pull-right ~ p {
+        clear: both;
+      }
+      #slideshow .slide .content code {
+        font-size: 0.8em;
+      }
+      #slideshow .slide .content pre code {
+        font-size: 0.9em;
+        padding: 15px;
+      }
+      .inverse {
+        background: #272822;
+        color: #777872;
+        text-shadow: 0 0 20px #333;
+      }
+      .inverse h1, .inverse h2 {
+        color: #f3f3f3;
+        line-height: 0.8em;
+      }
+
+      /* Slide-specific styling */
+      #slide-inverse .footnote {
+        bottom: 12px;
+        left: 20px;
+      }
+      #slide-how .slides {
+        font-size: 0.9em;
+        position: absolute;
+        top:  151px;
+        right: 140px;
+      }
+      #slide-how .slides h3 {
+        margin-top: 0.2em;
+      }
+      #slide-how .slides .first, #slide-how .slides .second {
+        padding: 1px 20px;
+        height: 90px;
+        width: 120px;
+        -moz-box-shadow: 0 0 10px #777;
+        -webkit-box-shadow: 0 0 10px #777;
+        box-shadow: 0 0 10px #777;
+      }
+      #slide-how .slides .first {
+        background: #fff;
+        position: absolute;
+        top: 20%;
+        left: 20%;
+        z-index: 1;
+      }
+      #slide-how .slides .second {
+        position: relative;
+        background: #fff;
+        z-index: 0;
+      }
+
+      /* Two-column layout */
+      .left-column {
+        color: #777;
+        width: 20%;
+        height: 92%;
+        float: left;
+      }
+      .left-column h2:last-of-type, .left-column h3:last-child {
+          color: #000;
+      }
+      .right-column {
+        width: 75%;
+        float: right;
+        padding-top: 1em;
+      }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+name: inverse
+layout: true
+class: center, middle, inverse
+---
+# Rectified Flow
+Author: .yellow[Cuiem]
+
+[[Index](../../index.html)]
+[[16:9](20241023_16_9.html)]
+
+.footnote[Supported by [Remark](https://github.com/gnab/remark)]
+
+---
+layout: false
+# Agenda
+### 1. Theory
+### 2. Flow-Gan
+### 3. Latest Work
+---
+template: inverse
+# Theory
+---
+.left-column[
+## Theory
+### - Flow Matching
+]
+
+.right-column[
+Let `x_1` denote a random variable distributed according to some unknown data distribution `q(x_1)`. We assume we only have access to data samples from `q(x_1)` but have no access to the density function itself. 
+
+Furthermore, we let `p_t` be a probability path such that `p_0 = p` is a simple distribution, e.g., the standard normal distribution `p(x) = N (x|0, I)`, and let `p_1` be approximately equal in distribution to `q`. 
+
+The Flow Matching objective is then designed to match this target probability path, which will allow us to flow from `p_0` to `p_1`.
+
+<center>
+  <img src="example.png" width="100%">
+</center>
+]
+
+.footnote[.red[*]Lipman, Y., Chen, R. T., Ben-Hamu, H., Nickel, M., & Le, M. (2022). Flow matching for generative modeling.]
+---
+.left-column[
+## Theory
+### - Flow Matching
+### - Rectified Flow
+]
+
+.right-column[
+All generative models can be framed unifidely as finding a transport map between two probability distributions. But T can be parameterized as list below:
+- Neural Network: GAN; VAE
+- Continuous Time Process: Diffusion Model(SDE); Flow Model(ODE)
+
+The rectified flow is an ODE model that transport distribution `π_0` to `π_1` by following .red[straight line paths] as much as possible.
+
+<center>
+  <img src="rectified.png" width="100%">
+</center>
+
+]
+
+.footnote[.red[*]Liu, X., Gong, C., & Liu, Q. (2022). Flow straight and fast: Learning to generate and transfer data with rectified flow. arXiv preprint arXiv:2209.03003.]
+---
+.left-column[
+## Theory
+### - Flow Matching
+### - Rectified Flow
+### - Algorithm
+
+
+]
+
+.right-column[
+<center>
+  <img src="rectflow.png" width="100%">
+</center>
+<center>
+  <img src="image.png" width="70%">
+</center>
+<center>
+  <img src="algorithn.png" width="100%">
+</center>
+]
+---
+template: inverse
+# Flow-Gan
+---
+## Flow-Gan
+Check My log [here](../../GenerativeModel/GmPaperReading/FlowGan/fg.html).
+<center>
+  <img src="flow-gan.png" width="80%">
+</center>
+.footnote[.red[*]Grover, A., Dhar, M., & Ermon, S. (2018, April). Flow-gan: Combining maximum likelihood and adversarial learning in generative models. In Proceedings of the AAAI conference on artificial intelligence (Vol. 32, No. 1).]
+
+---
+template: inverse
+# Latest Work
+---
+.left-column[
+## Latest Work
+
+So far results:
+<center>
+  <img src="MNIST.png" width="100%">
+</center>
+]
+.right-column[
+Want to combine Rectified Flow and Gan.
+<center>
+  <img src="rfgan.png" width="100%">
+</center>
+
+]
+.footnote[.red[*] Check larger image [here](20241023_16_9.html).]
+---
+template: inverse
+#Thank You!
+[[Index](../../index.html)]
+
+    </textarea>
+    <script src="https://remarkjs.com/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create({ ratio: "4:3" });
+    </script>
+  </body>
+</html>
