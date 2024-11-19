@@ -1,5 +1,5 @@
 <html>
-
+    <script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
 <head>
     <title>CuiEM Site</title>
     <style>
@@ -88,7 +88,21 @@
         Unless specified otherwise, all the code and the documentation on this site is in public domain
     </p>
    
-    <div class="year">2024 <sup>6</sup></div>
+    <div class="year">2024 <sup>7</sup></div>
+
+    <div class="month-container">
+        <div class="month">Nov <sup>1</sup></div>
+        <div class="posts">
+            <div class="post">
+                <a class="entry-link" href="GenerativeModel/GmPaperReading/DiffusionGan/dg.html">
+                    <div class="post-title">Diffusion-GAN: Training Gans with Diffusion</div>
+                    <div class="post-meta">Date: November 19, 2024 | Author: CuiEM</div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #e0e0e0;">
 
     <div class="month-container">
         <div class="month">Oct <sup>1</sup></div>
@@ -164,5 +178,10 @@
     <hr style="border: 0; border-top: 1px solid #e0e0e0;">
     
 </body>
-
+<script>
+    function addDarkmodeWidget() {
+      new Darkmode({label: '🌓'}).showWidget();
+    }
+    window.addEventListener('load', addDarkmodeWidget);
+  </script>
 </html>
