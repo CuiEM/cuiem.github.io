@@ -16,6 +16,7 @@
         }
         .module-border-wrap {
             width: 100%;
+            margin: 10px;
             background: linear-gradient(to right, red, purple);
             padding: 5px;
             border-radius: 25px;
@@ -24,10 +25,10 @@
             justify-content: center;
         }
         .container {
+            width: 100%;
             background-color: white;
             margin: auto auto;
             padding: 20px;
-            border: 0px solid #333;
             border-radius: 20px;
             display: flex;
             align-items: center; 
@@ -64,6 +65,20 @@
             border-radius: 15px;
             padding: 0px;
         }
+
+        .g-container {
+            width: 100%;
+            height: 20px;
+            border-radius: 25px;
+            background: linear-gradient(to right, red, purple);
+            
+        }
+        .g-progress {
+            height: inherit;
+            border-radius: 0px 25px 25px 0px;
+            background: #eee;
+            float: right;
+        }
     </style>
 </head>
 <body>
@@ -91,8 +106,5 @@
             </div>
         </div>
     </div>
-
-    
-    
 </body>
 </html>

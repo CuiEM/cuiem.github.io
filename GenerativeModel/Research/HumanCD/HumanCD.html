@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<!-- and it's easy to individually load additional languages -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+
+    <!-- The loading of KaTeX is deferred to speed up page rendering -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script>
+
+    <!-- To automatically render math in text elements, include the auto-render extension: -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous"
+        onload="renderMathInElement(document.body);"></script>
+
+
+<head>
+    <title>CuiEM Site</title>
+    <style>
+        BODY {
+            background-color: white;
+            color: black;
+            margin: 25px;
+            width: 80%; 
+            max-width: 1024px;
+            margin-right: auto; 
+            margin-left: auto; 
+        }
+
+        .heading {
+            text-align: center;
+        }
+
+        .small {
+            font-size: 90%;
+        }
+
+        dd {
+            margin-left: 0pt;
+            margin-bottom: lem;
+            margin-top: 2px;
+        }
+
+        #navbar,
+        h1 {
+            text-align: center;
+        }
+
+        .small {
+            font-size: x-small;
+        }
+
+        LI.separator {
+            list-style-type: none;
+        }
+
+        LI.header {
+            list-style-type: none;
+            padding: 1em 0px 2px;
+            margin-left: -1em;
+        }
+        #toc {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+        #toc h3 {
+            margin-top: 0;
+        }
+        #toc ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+        #toc a {
+            text-decoration: none;
+            color: #333;
+        }
+        #toc a:hover {
+            color: #0066cc;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="navbar">
+        <a href="../../GMIndex.html">Back to Learning Log</a>
+        <hr>
+    </div>
+
+    <h1>Human Motion Prediction based on Consistency Distillation</h1>
+    <dd align="right">CuiEM</dd>
+
+    <h2> 👍️ HuamnMAC</h2>
+    HuamnMAC 是一个基于 DDIM 逐步去噪生成动作序列的条件预测/生成模型。它的输入是25帧的历史数据加上100帧的随机噪声（总共长度为125帧的数据），输出是25帧的历史数据加上100帧的预测数据。在进入 Diffusion 之前与之后都会有个矩阵变换进行降维与升维处理。
+    
+    <center>
+        <img src="humanmac.png" width = 20%>
+    </center>
+
+    <h2> 🙌 Consistency Distillation</h2>
+    
+    <center>
+        <img src="cd.png" width=50%>
+    </center>
+
+    一致性模型的蒸馏是在预训练好的 Diffusion 基础上进行训练。其中的 $$f_{\theta}(\mathbf{x},t)=c_{\mathrm{skip}}(t)\mathbf{x}+c_{\mathrm{out}}(t)F_{\boldsymbol{\theta}}(\mathbf{x},t)$$ 而 F 是需要训练出来的神经网络。
+
+    <h2> 🥲 训练过程</h2>
+    先将 样本(x_0) 随机加噪到某个时间步（比如457，属于[1,999]）之间得到 x_(t+1) ，然后利用HumanMAC前向去噪一步到前一个时间步（比如456）得到 x_(t)，再计算并最小化 f(x_(t+1), t+1) 和 f(x_(t), t) 的距离，即：
+    $$
+    min \quad MSE(f_\theta(\mathbf{x}_{t_{n+1}}, t_{n+1}), f_{\theta^-}(\hat{\mathbf{x}}_{t_n}, t_n)\big)
+    $$
+    <center>
+        <img src="algorithm.png" width=70%>
+    </center>
+    但是实际上这样的训练效果并不好，所以在原优化目标的基础上再增加一项 Loss 即和训练时加噪前的的样本的距离，即：
+    $$
+    min \quad MSE(f_\theta(\mathbf{x}_{t_{n+1}}, t_{n+1}), f_{\theta^-}(\hat{\mathbf{x}}_{t_n}, t_n)\big) + MSE(f_\theta(\mathbf{x}_{t_{n+1}}, t_{n+1}), x_0)
+    $$
+
+    <h2> 🤣 Results</h2>
+    🤣
+</body>
+<script>
+  function addDarkmodeWidget() {
+    new Darkmode({label: '🌓'}).showWidget();
+  }
+  window.addEventListener('load', addDarkmodeWidget);
+</script>
+</html>
