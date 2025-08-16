@@ -1,8 +1,8 @@
 ---
-title: Diffusion-GAN Training GANs with Diffusion
+title: Diffusion-GAN
 date: 2024-11-19 12:00:00 +8000
 categories: [PaperReading]
-tags: [GAN, Diffusion, Paper]
+tags: [GAN, Diffusion, Paper, Math]
 math: true
 description: 这篇论文介绍了一种名为Diffusion-GAN的新型生成对抗网络（GAN）框架。Diffusion-GAN通过利用前向扩散链生成高斯混合分布的实例噪声，来训练GAN。Diffusion-GAN的核心思想是将观测到的数据和生成的数据都通过相同的自适应扩散过程进行扩散，然后在每个扩散时间步中，判别器学习区分扩散后的真实数据和扩散后生成的数据。生成器则通过判别器的反馈，通过前向扩散链进行反向传播来学习，其长度会自适应调整以平衡噪声和数据水平。
 ---
