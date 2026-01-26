@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SUDOKU 每日一练</title>
+    <style>
+        :root {
+            /* --- 亮色模式 --- */
+            --bg: #fff2df;
+            --color-text: #1e50a2;
+            --color-primary: #1e50a2;
+            --color-accent: #fdca17;
+            --cell-bg: #ffffff;
+            --cell-fixed: #f0f0f0;
+            --grid-line: #bec6d4;      /* 普通细线 */
+            --grid-bold: #1e50a2;      /* 3x3 粗线颜色 */
+            --modal-bg: #ffffff;
+            --modal-overlay: rgba(0, 0, 0, 0.5);
+            
+            /* 动画缓动函数 */
+            --ease-elastic: cubic-bezier(0.5, 1.25, 0.75, 1.25);
+            --ease-out: cubic-bezier(0.25, 0, 0.3, 1);
+        }
+
+        /* --- 暗色模式 --- */
+        body.dark-mode {
+            --bg: #121212;
+            --color-text: #e8eaed;
+            --color-primary: #8ab4f8;
+            --color-accent: #fdd835;
+            --cell-bg: #1e1e1e;
+            --cell-fixed: #2c2c2c;
+            --grid-line: #3c4043;
+            --grid-bold: #8ab4f8;      /* 暗色下粗线高亮 */
+            --modal-bg: #2d2d2d;
+            --modal-overlay: rgba(0, 0, 0, 0.8);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            height: 100vh; /* 强制满屏高度 */
+            display: flex;
+            justify-content: center; /* 水平居中 */
+            align-items: center;     /* 垂直居中 */
+            color: var(--color-text);
+            transition: background-color 0.3s, color 0.3s;
+            overflow: hidden; /* 防止出现不必要的滚动条 */
+        }
+
+        .container {
+            width: 95%;
+            max-width: 450px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        h1 {
+            margin: 0 0 15px 0;
+            color: var(--color-primary);
+            font-size: 1.8rem;
+        }
+
+        /* 难度选择栏 */
+        .difficulty-bar {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .difficulty-bar button {
+            padding: 6px 15px;
+            border: 1px solid var(--color-primary);
+            background-color: transparent;
+            color: var(--color-primary);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .difficulty-bar button:hover, .difficulty-bar button.active {
+            background-color: var(--color-primary);
+            color: var(--bg);
+        }
+
+        /* --- 棋盘样式 --- */
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 0;
+            width: 95vw;
+            height: 95vw;
+            max-width: 400px;
+            max-height: 400px;
+            margin: 0 auto 20px auto;
+            border: 3px solid var(--grid-bold);
+            background-color: var(--grid-bold);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .cell {
+            width: 100%;
+            height: 100%;
+            background-color: var(--cell-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(16px, 4vw, 22px);
+            color: var(--color-text);
+            /* 默认细线 */
+            border-right: 1px solid var(--grid-line);
+            border-bottom: 1px solid var(--grid-line);
+            outline: none;
+            cursor: pointer;
+            user-select: none;
+            box-sizing: border-box;
+            position: relative; 
+        }
+
+        /* 修复边缘多余的线 */
+        .cell:nth-child(9n) { border-right: none; }
+        .cell:nth-child(n+73) { border-bottom: none; }
+
+        /* --- 3x3 粗线绘制 --- */
+        .cell:nth-child(3n) {
+            border-right: 2px solid var(--grid-bold) !important;
+            z-index: 2; 
+        }
+        .cell:nth-child(9n) {
+            border-right: none !important;
+        }
+        .cell:nth-child(n+19):nth-child(-n+27),
+        .cell:nth-child(n+46):nth-child(-n+54) {
+            border-bottom: 2px solid var(--grid-bold) !important;
+            z-index: 2;
+        }
+
+        /* 交互样式 */
+        .cell:focus, .cell.selected {
+            background-color: var(--color-accent);
+            /* 强制选中时的文字颜色为深蓝，防止看不清提示色 */
+            color: var(--color-primary) !important;
+            box-shadow: inset 0 0 0 3px var(--color-primary);
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        .cell.fixed {
+            background-color: var(--cell-fixed);
+            font-weight: bold;
+        }
+
+        /* 数字键盘 */
+        .number-pad {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .num-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 2px solid var(--color-primary);
+            background-color: var(--cell-bg);
+            color: var(--color-text);
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s;
+            touch-action: manipulation;
+        }
+
+        .num-btn:active { transform: scale(0.9); }
+        .num-btn.clear-btn { border-color: #e74c3c; color: #e74c3c; }
+
+        /* 底部操作区 */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .controls button {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: white;
+            transition: opacity 0.2s;
+        }
+        .controls button:active { opacity: 0.8; }
+        .btn-hint { background-color: #f39c12; }
+        .btn-check { background-color: #28a745; }
+
+        /* --- 弹窗样式 --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--modal-overlay);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000;
+            opacity: 0; visibility: hidden;
+            transition: all 0.3s;
+        }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-content {
+            background-color: var(--modal-bg);
+            color: var(--color-text);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            width: 80%; max-width: 320px;
+            transform: scale(0.8);
+            transition: transform 0.4s var(--ease-elastic);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+        .modal-btn {
+            background-color: var(--color-primary);
+            color: var(--bg);
+            border: none; padding: 10px 25px;
+            border-radius: 20px; font-weight: bold; margin-top: 15px; cursor: pointer;
+        }
+
+        /* --- 右下角悬浮切换开关 --- */
+        .theme-toggle-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 0;
+            z-index: 999;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .theme-toggle-btn svg {
+            width: 100%;
+            height: 100%;
+            stroke-linecap: round;
+        }
+
+        .sun-core {
+            fill: var(--color-text);
+            transition: transform 0.5s var(--ease-elastic);
+            transform-origin: center center;
+        }
+
+        .sun-rays {
+            stroke: var(--color-text);
+            stroke-width: 2;
+            transition: transform 0.5s var(--ease-elastic), opacity 0.3s var(--ease-out);
+            transform-origin: center center;
+        }
+
+        /* 暗色模式动画状态 */
+        body.dark-mode .sun-core { transform: scale(0.6); }
+        body.dark-mode .sun-rays { transform: rotate(45deg); opacity: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SUDOKU 每日一练</h1>
+        
+        <div class="difficulty-bar">
+            <button onclick="newGame('easy')" id="btn-easy">简单</button>
+            <button onclick="newGame('medium')" id="btn-medium">中等</button>
+            <button onclick="newGame('hard')" id="btn-hard">困难</button>
+        </div>
+
+        <div id="game-board"></div>
+        
+        <div class="number-pad">
+            <button class="num-btn" onclick="fillNumber(1)">1</button>
+            <button class="num-btn" onclick="fillNumber(2)">2</button>
+            <button class="num-btn" onclick="fillNumber(3)">3</button>
+            <button class="num-btn" onclick="fillNumber(4)">4</button>
+            <button class="num-btn" onclick="fillNumber(5)">5</button>
+            <button class="num-btn" onclick="fillNumber(6)">6</button>
+            <button class="num-btn" onclick="fillNumber(7)">7</button>
+            <button class="num-btn" onclick="fillNumber(8)">8</button>
+            <button class="num-btn" onclick="fillNumber(9)">9</button>
+            <button class="num-btn clear-btn" onclick="fillNumber('X')">✕</button>
+        </div>
+
+        <div class="controls">
+            <button onclick="getHint()" class="btn-hint">💡 提示</button>
+            <button onclick="checkSolution()" class="btn-check">📝 检查</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <h2 id="modalTitle" style="margin-top:0">标题</h2>
+            <p id="modalMsg">内容</p>
+            <button class="modal-btn" onclick="closeModal()">好的</button>
+        </div>
+    </div>
+
+    <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle Dark Mode">
+        <svg class="theme-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <mask id="moon-mask">
+                <rect x="0" y="0" width="100%" height="100%" fill="white"/>
+                <circle cx="25" cy="0" r="8" fill="black" class="moon-shadow"/>
+            </mask>
+            <g class="sun-rays">
+                <line x1="12" y1="1" x2="12" y2="4"/>
+                <line x1="12" y1="20" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/>
+                <line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="4" y2="12"/>
+                <line x1="20" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/>
+                <line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/>
+            </g>
+            <circle cx="12" cy="12" r="6" class="sun-core" mask="url(#moon-mask)"/>
+        </svg>
+    </button>
+
+    <script>
+        const boardElement = document.getElementById('game-board');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMsg = document.getElementById('modalMsg');
+
+        let solutionBoard = []; 
+        let puzzleBoard = [];   
+        let selectedCellIndex = -1;
+        let currentDifficulty = 'easy';
+
+        function initGrid() {
+            boardElement.innerHTML = '';
+            for (let i = 0; i < 81; i++) {
+                const div = document.createElement('div');
+                div.className = 'cell';
+                div.dataset.index = i;
+                div.tabIndex = 0; 
+                
+                div.addEventListener('click', (e) => selectCell(i));
+                div.addEventListener('keydown', (e) => {
+                    const key = e.key;
+                    if (/[1-9]/.test(key)) fillNumber(parseInt(key));
+                    else if (key === 'Backspace' || key === 'Delete') fillNumber('X');
+                    else if (key.startsWith('Arrow')) moveSelection(key);
+                });
+                
+                boardElement.appendChild(div);
+            }
+        }
+
+        function selectCell(index) {
+            selectedCellIndex = index;
+            document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
+            const cell = boardElement.children[index];
+            cell.classList.add('selected');
+            cell.focus();
+        }
+
+        function moveSelection(key) {
+            if (selectedCellIndex === -1) return;
+            let row = Math.floor(selectedCellIndex / 9);
+            let col = selectedCellIndex % 9;
+            if (key === 'ArrowUp') row = Math.max(0, row - 1);
+            if (key === 'ArrowDown') row = Math.min(8, row + 1);
+            if (key === 'ArrowLeft') col = Math.max(0, col - 1);
+            if (key === 'ArrowRight') col = Math.min(8, col + 1);
+            selectCell(row * 9 + col);
+        }
+
+        function fillNumber(num) {
+            if (selectedCellIndex === -1) return;
+            const cell = boardElement.children[selectedCellIndex];
+            if (cell.classList.contains('fixed')) return;
+
+            if (num === 'X') {
+                cell.textContent = '';
+                cell.dataset.value = 0;
+            } else {
+                cell.textContent = num;
+                cell.dataset.value = num;
+                // 填入数字后样式适配文字颜色（未选中时）
+                cell.style.color = 'var(--color-text)';
+            }
+        }
+
+        // 修改后的提示功能：随机提示，不依赖当前选中格
+        function getHint() {
+            const emptyIndices = [];
+            const cells = boardElement.children;
+            
+            for (let i = 0; i < 81; i++) {
+                const cell = cells[i];
+                const val = parseInt(cell.dataset.value) || 0;
+                const row = Math.floor(i / 9);
+                const col = i % 9;
+                
+                // 筛选：不是固定格 且 (空 或 错)
+                if (!cell.classList.contains('fixed') && (val === 0 || val !== solutionBoard[row][col])) {
+                    emptyIndices.push(i);
+                }
+            }
+
+            if (emptyIndices.length > 0) {
+                // 随机选一个
+                const randomIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+                const cell = cells[randomIndex];
+                const row = Math.floor(randomIndex / 9);
+                const col = randomIndex % 9;
+                const correctVal = solutionBoard[row][col];
+                
+                cell.textContent = correctVal;
+                cell.dataset.value = correctVal;
+                // 设置为橙色/明黄，但在选中时会被CSS的 !important 覆盖为深蓝以便阅读
+                cell.style.color = 'var(--color-accent)'; 
+                
+                selectCell(randomIndex);
+            } else {
+                showModal("提示", "🎉 看起来没有需要提示的地方了！");
+            }
+        }
+
+        function showModal(title, msg) {
+            modalTitle.textContent = title;
+            modalMsg.textContent = msg;
+            modalOverlay.classList.add('show');
+        }
+        function closeModal() { modalOverlay.classList.remove('show'); }
+        modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+
+        function isValid(board, row, col, num) {
+            for (let i = 0; i < 9; i++) {
+                if (board[row][i] === num || board[i][col] === num) return false;
+                const boxRow = 3 * Math.floor(row / 3) + Math.floor(i / 3);
+                const boxCol = 3 * Math.floor(col / 3) + i % 3;
+                if (board[boxRow][boxCol] === num) return false;
+            }
+            return true;
+        }
+
+        function solveSudoku(board) {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (board[row][col] === 0) {
+                        const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
+                        for (let num of nums) {
+                            if (isValid(board, row, col, num)) {
+                                board[row][col] = num;
+                                if (solveSudoku(board)) return true;
+                                board[row][col] = 0; 
+                            }
+                        }
+                        return false; 
+                    }
+                }
+            }
+            return true;
+        }
+
+        function newGame(difficulty) {
+            currentDifficulty = difficulty;
+            selectedCellIndex = -1;
+            document.querySelectorAll('.difficulty-bar button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${difficulty}`).classList.add('active');
+            
+            solutionBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
+            solveSudoku(solutionBoard);
+            puzzleBoard = JSON.parse(JSON.stringify(solutionBoard));
+            
+            let attempts = difficulty === 'easy' ? 30 : difficulty === 'medium' ? 40 : 50;
+            while (attempts > 0) {
+                let row = Math.floor(Math.random() * 9);
+                let col = Math.floor(Math.random() * 9);
+                if (puzzleBoard[row][col] !== 0) {
+                    puzzleBoard[row][col] = 0;
+                    attempts--;
+                }
+            }
+            renderBoard();
+        }
+
+        function renderBoard() {
+            const cells = boardElement.children;
+            for (let i = 0; i < cells.length; i++) {
+                const row = Math.floor(i / 9);
+                const col = i % 9;
+                const val = puzzleBoard[row][col];
+                const cell = cells[i];
+                cell.classList.remove('fixed', 'selected');
+                cell.style.color = ''; 
+                if (val !== 0) {
+                    cell.textContent = val;
+                    cell.dataset.value = val;
+                    cell.classList.add('fixed');
+                } else {
+                    cell.textContent = '';
+                    cell.dataset.value = 0;
+                }
+            }
+        }
+
+        function checkSolution() {
+            const cells = boardElement.children;
+            let isCorrect = true;
+            let isComplete = true;
+            for (let i = 0; i < cells.length; i++) {
+                const cell = cells[i];
+                const row = Math.floor(i / 9);
+                const col = i % 9;
+                const userVal = parseInt(cell.dataset.value) || 0;
+                
+                if (userVal === 0) isComplete = false;
+                
+                if (userVal !== 0 && userVal !== solutionBoard[row][col]) {
+                    cell.style.color = '#e74c3c'; 
+                    isCorrect = false;
+                } else if (userVal !== 0 && !cell.classList.contains('fixed')) {
+                    // 如果检查正确，且不是橙色(提示)，则变绿
+                    if (cell.style.color !== 'var(--color-accent)') cell.style.color = '#28a745'; 
+                }
+            }
+            if (isComplete && isCorrect) showModal("恭喜你！", "🎉 挑战成功！你真是太棒了！");
+            else if (!isCorrect) showModal("哎呀...", "⚠️ 存在错误，请检查标红的数字。");
+            else showModal("加油！", "还没有完成哦，继续努力！");
+        }
+
+        // --- 动画切换 ---
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            
+            const moonShadow = document.querySelector('.moon-shadow');
+            if (isDark) {
+                // 变成月亮：黑影移进来
+                moonShadow.setAttribute('cx', '17'); 
+                moonShadow.setAttribute('cy', '5'); 
+            } else {
+                // 变成太阳：黑影移走
+                moonShadow.setAttribute('cx', '25'); 
+                moonShadow.setAttribute('cy', '0'); 
+            }
+        }
+
+        // 初始化
+        initGrid();
+        newGame('easy');
+    </script>
+</body>
+</html>
